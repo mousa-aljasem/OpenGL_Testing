@@ -20,6 +20,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="src\shaders\vertex.glsl" />
+    <None Include="res\shaders\basic.shader" />
   </ItemGroup>
 </Project>
