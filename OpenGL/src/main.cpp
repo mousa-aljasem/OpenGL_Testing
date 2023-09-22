@@ -11,6 +11,23 @@ struct ShaderProgramSource {
     std::string FragmentSource;
 };
 
+#define ASSERT(x) if (!(x)) __debugbreak();
+#define GLCall(x) GLClearError();\
+    x;\
+    ASSERT(GLLogCall(#x, __FILE__, __LINE__))
+
+static void GLClearError() {
+    while (glGetError() != GL_NO_ERROR);
+}
+
+static bool GLLogCall(const char* function, const char* file, int line) {
+    while (GLenum error = glGetError()) {
+        std::cout << "[OpenGL Error] (" << error << ") " << function <<
+            " " << file << ":" << line << std::endl;
+        return false;
+    }
+    return true;
+}
 
 static ShaderProgramSource parseShader(const std::string& filepath);
 static unsigned int CompileShader(unsigned int type, const std::string& source);
@@ -67,6 +84,11 @@ int main(void)
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
 
+    unsigned int buffer;
+    glGenBuffers(1, &buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    // 6 * sizeof(float) works because sizeof() returns the size in bytes
+    glBufferData(GL_ARRAY_BUFFER, 6 * 2 * sizeof(float), positions, GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
@@ -179,7 +201,7 @@ void render() {
     glClearColor(backgroundColour[0], backgroundColour[1], backgroundColour[2], backgroundColour[3]);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+    GLCall(glDrawElements(GL_TRIANGLES, 6, GL_INT, nullptr));
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
