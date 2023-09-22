@@ -7,8 +7,10 @@
 #include <sstream>
 
 #include "Renderer.h"
+
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "VertexArray.h"
 
 struct ShaderProgramSource {
     std::string VertexSource;
@@ -36,6 +38,10 @@ int main(void)
     if (!glfwInit())
         return -1;
 
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
     /* Create a windowed mode window and its OpenGL context */
     window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
     if (!window)
@@ -43,8 +49,6 @@ int main(void)
         glfwTerminate();
         return -1;
     }
-
-
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
 
@@ -70,15 +74,16 @@ int main(void)
             2, 3, 0
         };
 
-        // Required for modern OpenGL
-        unsigned int VAO; // Vertex Array Object
-        GLCall(glGenVertexArrays(1, &VAO));
-        GLCall(glBindVertexArray(VAO));
+        unsigned int vao;
+        GLCall(glGenVertexArrays(1, &vao));
+        GLCall(glBindVertexArray(vao));
 
+        VertexArray va;
         VertexBuffer vb(positions, 4 * 2 * sizeof(float));
 
-        GLCall(glEnableVertexAttribArray(0));
-        GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));
+        VertexBufferLayout layout;
+        layout.Push<float>(2);
+        va.AddBuffer(vb, layout);
 
         IndexBuffer ib(indices, 6);
 
@@ -89,8 +94,12 @@ int main(void)
         // Looks for the location of the variable "u_Color" stored inside the shader
         GLCall(int location = glGetUniformLocation(shader, "u_Color"));
         ASSERT(location != -1); // Make sure location is actually found
-
-        //glBindBuffer(GL_ARRAY_BUFFER, 0);
+        GLCall(glUniform4f(location, 0.8f, 0.3f, 0.8f, 1.0f));
+        
+        va.Unbind();
+        GLCall(glUseProgram(0));
+        GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
+        GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 
         float r = 0.0f;
         float increment = 0.05f;
@@ -100,13 +109,13 @@ int main(void)
             // Input
             processInput(window);
 
+            //GLCall(glClearColor(backgroundColour[0], backgroundColour[1], backgroundColour[2], backgroundColour[3]));
+            GLCall(glClear(GL_COLOR_BUFFER_BIT));
+
             GLCall(glUseProgram(shader));
             GLCall(glUniform4f(location, r, 0.0f, 0.0f, 1.0f));
 
-            GLCall(glClearColor(backgroundColour[0], backgroundColour[1], backgroundColour[2], backgroundColour[3]));
-            GLCall(glClear(GL_COLOR_BUFFER_BIT));
-
-            GLCall(glBindVertexArray(VAO));
+            va.Bind();
             ib.Bind();
 
             GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
