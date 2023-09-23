@@ -15,6 +15,9 @@
 #include "Shader.h"
 #include "Texture.h"
 
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
@@ -89,10 +92,15 @@ int main(void) {
         layout.Push<float>(2); // Square Texture
         va.AddBuffer(vb, layout);
 
+        // Orthographic projection
+        // Give values that equate to the 4:3 aspect ration that the window is on
+        glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
+
 
         Shader shader("res/shaders/basic.shader");
         shader.Bind();
         shader.SetUniform4f("u_Color", 0.8f, 0.3f, 0.8f, 1.0f);
+        shader.SetUniformMat4f("u_MVP", proj);
 
         Texture texture("res/textures/googleAssistant.png");
         texture.Bind();
