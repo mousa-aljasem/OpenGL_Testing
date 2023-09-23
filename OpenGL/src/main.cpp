@@ -76,7 +76,7 @@ int main(void) {
             2, 3, 0
         };
 
-        // Render alpha as nothing
+        // Enable blending and display transparent pixels correctly
         GLCall(glEnable(GL_BLEND));
         GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
