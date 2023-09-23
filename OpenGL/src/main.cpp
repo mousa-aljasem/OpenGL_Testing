@@ -20,37 +20,47 @@ float backgroundColour[] = {
     0.2f, 0.3f, 0.3f, 1.0f
 };
 
-int main(void)
-{
-    GLFWwindow* window;
-
+GLFWwindow* InitWindow() {
     /* Initialize the library */
     if (!glfwInit())
-        return -1;
+        return nullptr;
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
-    if (!window)
-    {
-        glfwTerminate();
-        return -1;
-    }
-    /* Make the window's context current */
-    glfwMakeContextCurrent(window);
+    GLFWwindow* window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
 
-    glfwSwapInterval(1);
+    if (window == NULL) {
+        glfwTerminate();
+        return nullptr;
+    }
+
+    glfwMakeContextCurrent(window);
 
     // Has to be after glfwMakeContextCurrent, glewInit() requires a valid context
     if (glewInit() != GLEW_OK) {
-        std::cout << "ERROR!" << std::endl;
+        std::cout << "Failed to initialize GLEW!" << std::endl;
     }
 
     // For debugging purposes, will output the OpenGL version as well as GPU driver version
     std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
+
+    //glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+    return window;
+}
+
+
+int main(void) {
+    GLFWwindow* window = InitWindow();
+    if (!window) {
+        glfwTerminate();
+        return -1;
+    }
+
+    glfwSwapInterval(1);
+
     {
         float positions[] = {
             -0.5f, -0.5f,
@@ -66,13 +76,14 @@ int main(void)
 
         VertexArray va;
         VertexBuffer vb(positions, 4 * 2 * sizeof(float));
+        IndexBuffer ib(indices, 6);
+
         VertexBufferLayout layout;
         layout.Push<float>(2);
         va.AddBuffer(vb, layout);
 
-        IndexBuffer ib(indices, 6);
 
-        Shader shader("res/shader/basic.shader");
+        Shader shader("res/shaders/basic.shader");
         shader.Bind();
         shader.SetUniform4f("u_Color", 0.8f, 0.3f, 0.8f, 1.0f);
 
@@ -87,9 +98,8 @@ int main(void)
         while (!glfwWindowShouldClose(window))
         {
             // Input
-            //processInput(window);
-
-            //GLCall(glClearColor(backgroundColour[0], backgroundColour[1], backgroundColour[2], backgroundColour[3]));
+            processInput(window);
+            
             GLCall(glClear(GL_COLOR_BUFFER_BIT));
 
             shader.Bind();
@@ -152,4 +162,6 @@ void processInput(GLFWwindow* window) {
         backgroundColour[1] = 0.3f;
         backgroundColour[2] = 0.3f;
     }
+
+    GLCall(glClearColor(backgroundColour[0], backgroundColour[1], backgroundColour[2], backgroundColour[3]));
 }
