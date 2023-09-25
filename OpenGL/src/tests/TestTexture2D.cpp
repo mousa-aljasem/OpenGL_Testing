@@ -35,6 +35,7 @@ namespace test {
 
         m_VAO = std::make_unique<VertexArray>();
         m_VB = std::make_unique<VertexBuffer>(positions, 4 * 4 * sizeof(float));
+
         VertexBufferLayout layout;
         layout.Push<float>(2); // Square object
         layout.Push<float>(2); // Square Texture

@@ -155,13 +155,17 @@ void Shader::SetUniformMat4f(const std::string& name, const glm::mat4& matrix) {
 }
 
 int Shader::GetUniformLocation(const std::string& name) {
-    if (m_UniformLocationCache.find(name) != m_UniformLocationCache.end())
-        return m_UniformLocationCache[name];
+    // If the uniform is in the list, then grab its location through that
+    auto locationTemp = m_UniformLocationCache.find(name);
+    if (locationTemp != m_UniformLocationCache.end())
+        return locationTemp->second;
 
+    // Otherwise, find the location of that uniform
     GLCall(int location = glGetUniformLocation(m_RendererID, name.c_str()));
-    if (location == -1)
+    if (location == -1) // If its -1, then the uniform doesn't exist
         std::cout << "Warning: uniform '" << name << "' doesn't exist!" << std::endl;
     
+    // Store the location in the list for next time. This speeds up access of uniforms
     m_UniformLocationCache[name] = location;
     return location;
 }
